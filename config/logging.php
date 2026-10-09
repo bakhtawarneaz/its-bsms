@@ -52,6 +52,20 @@ return [
 
     'channels' => [
 
+        'system' => [
+            'driver' => 'custom',
+            'via'    => App\Logging\CreateDailyDirectoryLogger::class,
+            'folder' => 'system',
+            'level'  => env('LOG_LEVEL', 'debug'),
+        ],
+
+        'auth' => [
+            'driver' => 'custom',
+            'via'    => App\Logging\CreateDailyDirectoryLogger::class,
+            'folder' => 'auth',
+            'level'  => env('LOG_LEVEL', 'debug'),
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),

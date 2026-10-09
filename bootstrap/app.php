@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'portal.auth'  => \App\Http\Middleware\EnsurePortalAuthenticated::class,
             'portal.guest' => \App\Http\Middleware\RedirectIfPortalAuthenticated::class,
         ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\AddRequestContext::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

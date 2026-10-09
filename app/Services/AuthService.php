@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\LoginStatus;
 use App\Repositories\AuthRepository;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Log;
 
 class AuthService
 {
@@ -30,8 +31,12 @@ class AuthService
         }
 
         if ($status !== LoginStatus::Ok) {
+            Log::channel('auth')->warning('Login denied', ['login' => $login, 'status' => $status->value]);
+
             return ['status' => $status, 'user' => null];
         }
+
+        Log::channel('auth')->info('Login successful', ['login' => $login]);
 
         RateLimiter::clear($this->throttleKey($login, $siteName));
 
@@ -45,17 +50,26 @@ class AuthService
     {
         $key = $this->throttleKey($login, $siteName);
 
-        RateLimiter::hit($key, self::FAILED_ATTEMPTS_WINDOW_SECONDS);
+        $attempts = RateLimiter::hit($key, self::FAILED_ATTEMPTS_WINDOW_SECONDS);
 
-        if (RateLimiter::attempts($key) < self::MAX_FAILED_ATTEMPTS) {
+        Log::channel('auth')->warning('Login failed', [
+            'login'    => $login,
+            'attempts' => $attempts,
+        ]);
+
+        if ($attempts < self::MAX_FAILED_ATTEMPTS) {
             return LoginStatus::Invalid;
         }
 
         RateLimiter::clear($key);
 
-        return $this->repository->block($login, $siteName)
-            ? LoginStatus::Blocked
-            : LoginStatus::Invalid;
+        $blocked = $this->repository->block($login, $siteName);
+
+        if ($blocked) {
+            Log::channel('auth')->warning('User blocked after failed attempts', ['login' => $login]);
+        }
+
+        return $blocked ? LoginStatus::Blocked : LoginStatus::Invalid;
     }
 
     /**

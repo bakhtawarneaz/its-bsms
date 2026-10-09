@@ -9,6 +9,7 @@ use App\Services\AuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Enums\UserType;
 
 class LoginController extends Controller
 {
@@ -29,6 +30,9 @@ class LoginController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Discard any half-finished OTP flow from a previous attempt
+        $request->session()->forget(['otp_user', 'otp']);
+
         $result = $this->authService->attempt(
             trim($request->validated('login')),
             $request->validated('password'),
@@ -46,6 +50,14 @@ class LoginController extends Controller
 
         // Prevent session fixation by issuing a new session id on login
         $request->session()->regenerate();
+
+        // Users that require OTP are held in a pending state until the code is verified
+        if (UserType::fromDatabase($user['user_type'])->requiresOtp()) {
+            $request->session()->put('otp_user', $user);
+
+            return redirect()->route('otp.recipients');
+        }
+
         $request->session()->put('auth_user', $user);
 
         return redirect()->intended(route('dashboard'));
