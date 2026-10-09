@@ -5,19 +5,22 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
 
-Route::get('/login', [LoginController::class, 'create'])->name('login');
-Route::post('/login', [LoginController::class, 'store'])->name('login.store');
-Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+// Guest-only routes
+Route::middleware('portal.guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'create'])->name('login');
+    Route::post('/login', [LoginController::class, 'store'])->name('login.store');
+});
 
-// Temporary dashboard until the real module is built
-Route::get('/dashboard', function () {
-    $user = session('auth_user');
+// Authenticated routes
+Route::middleware('portal.auth')->group(function () {
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
-    if (! $user) {
-        return redirect()->route('login');
-    }
+    // Temporary dashboard until the real module is built
+    Route::get('/dashboard', function () {
+        $user = session('auth_user');
 
-    return '<h2>Welcome, ' . e($user['fullname'] ?? $user['username']) . ' (' . e($user['user_type']) . ')</h2>'
-        . '<form method="POST" action="' . route('logout') . '">' . csrf_field()
-        . '<button type="submit">Logout</button></form>';
-})->name('dashboard');
+        return '<h2>Welcome, ' . e($user['fullname'] ?? $user['username']) . ' (' . e($user['user_type']) . ')</h2>'
+            . '<form method="POST" action="' . route('logout') . '">' . csrf_field()
+            . '<button type="submit">Logout</button></form>';
+    })->name('dashboard');
+});
