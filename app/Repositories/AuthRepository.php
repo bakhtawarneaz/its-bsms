@@ -18,4 +18,19 @@ class AuthRepository
             'site_name'     => $siteName,
         ]);
     }
+
+        /**
+     * Block an active user after too many failed login attempts.
+     * Returns true when a user was actually blocked.
+     */
+    public function block(string $login, string $siteName): bool
+    {
+        $result = StoredProcedure::first('usp_auth_block_user', [
+            'login'     => $login,
+            'site_name' => $siteName,
+        ]);
+
+        return (int) ($result->blocked ?? 0) > 0;
+    }
+    
 }
