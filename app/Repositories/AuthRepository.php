@@ -32,5 +32,21 @@ class AuthRepository
 
         return (int) ($result->blocked ?? 0) > 0;
     }
+
+        /**
+     * Save the contact details a user confirms on first login.
+     * Returns true when the record was updated.
+     */
+    public function updateContact(int $userId, string $fullname, string $mobiles, string $emails): bool
+    {
+        $result = StoredProcedure::first('usp_auth_update_contact', [
+            'user_id'  => $userId,
+            'fullname' => $fullname,
+            'mobiles'  => $mobiles,
+            'emails'   => $emails,
+        ]);
+
+        return (int) ($result->updated ?? 0) > 0;
+    }
     
 }

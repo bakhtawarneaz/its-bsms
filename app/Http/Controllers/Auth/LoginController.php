@@ -30,8 +30,7 @@ class LoginController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        // Discard any half-finished OTP flow from a previous attempt
-        $request->session()->forget(['otp_user', 'otp']);
+        $request->session()->forget(['otp_user', 'otp', 'contact_user']);
 
         $result = $this->authService->attempt(
             trim($request->validated('login')),
@@ -51,8 +50,14 @@ class LoginController extends Controller
         // Prevent session fixation by issuing a new session id on login
         $request->session()->regenerate();
 
-        // Users that require OTP are held in a pending state until the code is verified
         if (UserType::fromDatabase($user['user_type'])->requiresOtp()) {
+            // First-time users must confirm their contact info before receiving an OTP
+            if ((int) $user['contact_updated'] === 0) {
+                $request->session()->put('contact_user', $user);
+
+                return redirect()->route('contact.edit');
+            }
+
             $request->session()->put('otp_user', $user);
 
             return redirect()->route('otp.recipients');
