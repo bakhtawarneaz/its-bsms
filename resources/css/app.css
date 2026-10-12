@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/figtree';
 @import '@fontsource-variable/bricolage-grotesque';
+@import 'flatpickr/dist/flatpickr.min.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -110,5 +111,102 @@
 
     .toast-progress {
         animation: none;
+    }
+}
+
+/* Sidebar: thin scrollbar that only appears on hover */
+.sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+}
+
+.sidebar-scroll:hover {
+    scrollbar-color: rgb(255 255 255 / 0.18) transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 9999px;
+}
+
+.sidebar-scroll:hover::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 0.18);
+}
+
+/* Date range picker (flatpickr) in the portal theme */
+.flatpickr-calendar.inline {
+    box-shadow: none;
+    border: 0;
+    font-family: inherit;
+}
+
+.flatpickr-current-month {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year {
+    font-weight: 600;
+}
+
+span.flatpickr-weekday {
+    color: var(--color-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.flatpickr-day {
+    border-radius: 8px;
+    color: var(--color-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.flatpickr-day:hover {
+    background: var(--color-surface);
+    border-color: var(--color-surface);
+}
+
+.flatpickr-day.today {
+    border-color: var(--color-brand);
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+    background: var(--color-navy-900);
+    border-color: var(--color-navy-900);
+    color: #fff;
+}
+
+.flatpickr-day.inRange {
+    background: #e8edf6;
+    border-color: #e8edf6;
+    box-shadow: -5px 0 0 #e8edf6, 5px 0 0 #e8edf6;
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+    color: rgb(91 100 117 / 0.35);
+}
+
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg {
+    fill: var(--color-navy-900);
+}
+
+/* Tailwind v4 no longer sets a pointer cursor on buttons */
+@layer base {
+    button:not(:disabled),
+    [role='button']:not(:disabled) {
+        cursor: pointer;
     }
 }

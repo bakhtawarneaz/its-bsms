@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OtpController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\ContactController;
+use App\Http\Controllers\DashboardController;
 
 Route::redirect('/', '/login');
 
@@ -24,12 +25,5 @@ Route::middleware('portal.guest')->group(function () {
 Route::middleware('portal.auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
-    // Temporary dashboard until the real module is built
-    Route::get('/dashboard', function () {
-        $user = session('auth_user');
-
-        return '<h2>Welcome, ' . e($user['fullname'] ?? $user['username']) . ' (' . e($user['user_type']) . ')</h2>'
-            . '<form method="POST" action="' . route('logout') . '">' . csrf_field()
-            . '<button type="submit">Logout</button></form>';
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });

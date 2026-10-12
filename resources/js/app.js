@@ -1,5 +1,6 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
+import { registerCharts } from './charts';
 
 /**
  * Global toast store. Use from anywhere:
@@ -68,6 +69,8 @@ window.toast = {
     info: (message) => Alpine.store('toasts').push('info', message),
     warning: (message) => Alpine.store('toasts').push('warning', message, 6000),
 };
+
+registerCharts(Alpine);
 
 Alpine.start();
 

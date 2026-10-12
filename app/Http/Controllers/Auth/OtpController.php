@@ -152,7 +152,8 @@ class OtpController extends Controller
         $request->session()->put('auth_user', $user);
         $this->activity->log('User Log in', (int) $user['id']);
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('dashboard'))
+            ->with('success', 'Welcome back, ' . ($user['fullname'] ?: $user['username']) . '.');
     }
 
     /**
