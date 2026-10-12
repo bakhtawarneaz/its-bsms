@@ -66,6 +66,13 @@ return [
             'level'  => env('LOG_LEVEL', 'debug'),
         ],
 
+        'sms' => [
+            'driver' => 'custom',
+            'via'    => App\Logging\CreateDailyDirectoryLogger::class,
+            'folder' => 'sms',
+            'level'  => env('LOG_LEVEL', 'debug'),
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),

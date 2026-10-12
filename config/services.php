@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    'sms_gateway' => [
+        'url'      => env('SMS_GATEWAY_URL'),
+        'username' => env('SMS_GATEWAY_USERNAME'),
+        'password' => env('SMS_GATEWAY_PASSWORD'),
+        'sender'   => env('SMS_GATEWAY_SENDER'),
+        'timeout'  => (int) env('SMS_GATEWAY_TIMEOUT', 15),
+    ],
+
+    'otp' => [
+        // "log" writes codes to the auth log (local only); "live" sends real SMS/email
+        'delivery' => env('OTP_DELIVERY', 'log'),
+    ],
+
 ];

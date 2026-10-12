@@ -3,9 +3,13 @@
 namespace App\Services;
 
 use App\Enums\OtpVerification;
+use App\Exceptions\OtpDeliveryFailed;
+use App\Mail\LoginOtpMail;
+use App\Services\Sms\SmsGateway;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use RuntimeException;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class OtpService
 {
@@ -15,6 +19,10 @@ class OtpService
 
     private const SESSION_KEY = 'otp';
     private const LAST_SENT_KEY = 'otp_last_sent_at'; // kept separately so clearing an OTP does not reset the cooldown
+
+    public function __construct(
+        private readonly SmsGateway $sms,
+    ) {}
 
     /**
      * Generate a new OTP, store its hash in the session and deliver it.
@@ -39,7 +47,12 @@ class OtpService
 
         session()->put(self::LAST_SENT_KEY, now()->timestamp);
 
-        $this->deliver($code, $mobile, $email);
+       if (! $this->deliver($code, $mobile, $email)) {
+            // Nothing was sent, so let the user retry immediately
+            $this->reset();
+
+            throw new OtpDeliveryFailed();
+        }
 
         return true;
     }
@@ -138,18 +151,43 @@ class OtpService
     }
 
     /**
-     * Send the OTP to the selected recipients.
-     * In the local environment the code is written to the log instead of being sent.
+     * Send the OTP by SMS and/or email.
+     * Succeeds when at least one channel accepts the code.
      */
-    private function deliver(string $code, ?string $mobile, ?string $email): void
+    private function deliver(string $code, ?string $mobile, ?string $email): bool
     {
-        if (app()->isLocal()) {
-            Log::channel('auth')->info('Login OTP generated', compact('code', 'mobile', 'email'));
+        if (config('services.otp.delivery') === 'log') {
+            Log::channel('auth')->info('Login OTP generated (log mode)', compact('code', 'mobile', 'email'));
 
-            return;
+            return true;
         }
 
-        // SMS, email and WhatsApp channels will be wired in the next step
-        throw new RuntimeException('OTP delivery channels are not configured yet.');
+        $message = "Your SMS Portal Login OTP Code is {$code}. For any issue, contact your Account Manager.";
+
+        $smsSent   = $mobile ? $this->sms->send($mobile, $message) : false;
+        $emailSent = $email ? $this->sendEmail($email, $code) : false;
+
+        Log::channel('auth')->info('Login OTP sent', [
+            'mobile' => $mobile,
+            'email'  => $email,
+            'sms'    => $smsSent,
+            'mail'   => $emailSent,
+        ]);
+
+        return $smsSent || $emailSent;
     }
+
+    private function sendEmail(string $email, string $code): bool
+    {
+        try {
+            Mail::to($email)->send(new LoginOtpMail($code, intdiv(self::EXPIRY_SECONDS, 60)));
+
+            return true;
+        } catch (Throwable $e) {
+            Log::channel('auth')->error('OTP email failed', ['email' => $email, 'error' => $e->getMessage()]);
+
+            return false;
+        }
+    }
+
 }

@@ -8,6 +8,7 @@ use App\Services\OtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Exceptions\OtpDeliveryFailed;
 
 class OtpController extends Controller
 {
@@ -59,7 +60,13 @@ class OtpController extends Controller
             return back()->withErrors(['mobile' => 'Please select at least one OTP recipient.']);
         }
 
-        if (! $this->otpService->issue($mobile, $email)) {
+        try {
+            $issued = $this->otpService->issue($mobile, $email);
+        } catch (OtpDeliveryFailed) {
+            return back()->with('error', 'We couldn’t send the code. Check your contact details or contact your account manager.');
+        }
+
+        if (! $issued) {
             return redirect()
                 ->route($this->otpService->hasPending() ? 'otp.verify' : 'otp.recipients')
                 ->with('warning', $this->cooldownMessage());
@@ -100,7 +107,13 @@ class OtpController extends Controller
             return redirect()->route('otp.recipients');
         }
 
-        if (! $this->otpService->resend()) {
+        try {
+            $resent = $this->otpService->resend();
+        } catch (OtpDeliveryFailed) {
+            return redirect()->route('otp.recipients')->with('error', 'We couldn’t send the code. Choose a recipient and try again.');
+        }
+
+        if (! $resent) {
             return back()->with('warning', $this->cooldownMessage());
         }
 
