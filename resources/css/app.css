@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/figtree';
+@import '@fontsource-variable/bricolage-grotesque';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -6,6 +8,107 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Bricolage Grotesque Variable', 'Figtree Variable', sans-serif;
+
+    --color-navy-950: #0B1730;
+    --color-navy-900: #0F1F3D;
+    --color-navy-800: #1A2D52;
+    --color-navy-700: #2A4170;
+
+    --color-brand: #F5C400;
+    --color-brand-dark: #D9AD00;
+
+    --color-surface: #F5F7FA;
+    --color-ink: #1D2433;
+    --color-muted: #5B6475;
+    --color-line: #DDE2EA;
+
+    --color-success: #12805C;
+    --color-danger: #C43D3D;
+    --color-warning: #B7791F;
+    --color-info: #2563EB;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+@layer components {
+    .field-label {
+        @apply mb-1.5 block text-sm font-medium text-ink;
+    }
+
+    .field-input {
+        @apply w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-[15px] text-ink shadow-xs transition placeholder:text-muted/60 focus:border-navy-700 focus:ring-4 focus:ring-navy-700/10 focus:outline-none;
+    }
+
+    .field-input[aria-invalid='true'] {
+        @apply border-danger focus:ring-danger/10;
+    }
+
+    .field-hint {
+        @apply mt-1.5 text-xs text-muted;
+    }
+
+    .btn-primary {
+        @apply inline-flex w-full items-center justify-center gap-2 rounded-lg bg-navy-900 px-4 py-3 text-[15px] font-semibold text-white transition hover:bg-navy-800 focus-visible:ring-4 focus-visible:ring-brand/60 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-70;
+    }
+
+    .link-muted {
+        @apply text-sm font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline;
+    }
+
+    .choice-card {
+        @apply flex cursor-pointer items-center gap-3 rounded-lg border border-line bg-white px-3.5 py-3 text-[15px] transition hover:border-navy-700/40 has-[:checked]:border-navy-700 has-[:checked]:ring-4 has-[:checked]:ring-navy-700/10;
+    }
+
+    .choice-radio {
+        @apply size-4 accent-navy-900;
+    }
+}
+
+/* Login panel: one orchestrated delivery-feed animation */
+@keyframes feed-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes tick-in {
+    from { opacity: 0; transform: scale(0.6); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes toast-progress {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+}
+
+.feed-item {
+    opacity: 0;
+    animation: feed-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    animation-delay: var(--delay);
+}
+
+.feed-status {
+    opacity: 0;
+    animation: tick-in 0.3s ease-out forwards;
+    animation-delay: calc(var(--delay) + 0.7s);
+}
+
+.toast-progress {
+    transform-origin: left;
+    animation: toast-progress linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .feed-item,
+    .feed-status {
+        animation: none;
+        opacity: 1;
+    }
+
+    .toast-progress {
+        animation: none;
+    }
 }

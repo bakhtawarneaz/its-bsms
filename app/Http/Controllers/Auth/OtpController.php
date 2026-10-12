@@ -59,9 +59,13 @@ class OtpController extends Controller
             return back()->withErrors(['mobile' => 'Please select at least one OTP recipient.']);
         }
 
-        $this->otpService->issue($mobile, $email);
+        if (! $this->otpService->issue($mobile, $email)) {
+            return redirect()
+                ->route($this->otpService->hasPending() ? 'otp.verify' : 'otp.recipients')
+                ->with('warning', $this->cooldownMessage());
+        }
 
-        return redirect()->route('otp.verify')->with('status', 'An OTP has been sent to the selected recipients.');
+        return redirect()->route('otp.verify')->with('status', 'A code has been sent to the selected recipients.');
     }
 
     /**
@@ -77,7 +81,30 @@ class OtpController extends Controller
             return redirect()->route('otp.recipients');
         }
 
-        return view('auth.otp-verify');
+         return view('auth.otp-verify', [
+            'expiresAt' => $this->otpService->expiresAt(),
+            'resendAt'  => $this->otpService->resendAvailableAt(),
+        ]);
+    }
+
+        /**
+     * Send a fresh code to the same recipients, respecting the cooldown.
+     */
+    public function resend(Request $request): RedirectResponse
+    {
+        if (! $request->session()->has('otp_user')) {
+            return redirect()->route('login');
+        }
+
+        if (! $this->otpService->hasPending()) {
+            return redirect()->route('otp.recipients');
+        }
+
+        if (! $this->otpService->resend()) {
+            return back()->with('warning', $this->cooldownMessage());
+        }
+
+        return redirect()->route('otp.verify')->with('status', 'A new code has been sent.');
     }
 
     /**
@@ -104,6 +131,7 @@ class OtpController extends Controller
 
     private function completeLogin(Request $request, array $user): RedirectResponse
     {
+        $this->otpService->reset();
         $request->session()->forget('otp_user');
         $request->session()->regenerate();
         $request->session()->put('auth_user', $user);
@@ -131,5 +159,10 @@ class OtpController extends Controller
         [$local, $domain] = array_pad(explode('@', $email, 2), 2, '');
 
         return substr($local, 0, 3) . '****@' . $domain;
+    }
+
+    private function cooldownMessage(): string
+    {
+        return 'Please wait ' . $this->otpService->cooldownRemaining() . ' seconds before requesting a new code.';
     }
 }

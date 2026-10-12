@@ -1,32 +1,50 @@
 @extends('layouts.guest')
 
-@section('title', 'OTP Recipients')
-@section('heading', 'Select OTP Recipients')
+@section('title', 'Verify sign-in')
+@section('heading', 'Verify it’s you')
+@section('subheading', 'Choose where to send your one-time code.')
 
 @section('content')
-    <form method="POST" action="{{ route('otp.send') }}">
+    <form
+        method="POST"
+        action="{{ route('otp.send') }}"
+        class="space-y-6"
+        x-data="{ loading: false }"
+        @submit="loading = true"
+        @pageshow.window="loading = false"
+    >
         @csrf
 
         @if (count($mobiles))
-            <label for="mobile">Via SMS</label>
-            <select id="mobile" name="mobile">
-                @foreach ($mobiles as $index => $mobile)
-                    <option value="{{ $index }}">{{ $mobile }}</option>
-                @endforeach
-            </select>
+            <fieldset>
+                <legend class="field-label">Send by SMS</legend>
+                <div class="space-y-2">
+                    @foreach ($mobiles as $index => $mobile)
+                        <label class="choice-card">
+                            <input type="radio" name="mobile" value="{{ $index }}" class="choice-radio" @checked($loop->first)>
+                            <span class="tabular-nums">{{ $mobile }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
         @endif
 
         @if (count($emails))
-            <label for="email">Via Email</label>
-            <select id="email" name="email">
-                @foreach ($emails as $index => $email)
-                    <option value="{{ $index }}">{{ $email }}</option>
-                @endforeach
-            </select>
+            <fieldset>
+                <legend class="field-label">Send by email</legend>
+                <div class="space-y-2">
+                    @foreach ($emails as $index => $email)
+                        <label class="choice-card">
+                            <input type="radio" name="email" value="{{ $index }}" class="choice-radio" @checked($loop->first)>
+                            <span>{{ $email }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </fieldset>
         @endif
 
-        <button type="submit">Send OTP</button>
+        @include('partials.submit-button', ['label' => 'Send code', 'loadingLabel' => 'Sending…'])
     </form>
 
-    <a class="link" href="{{ route('login') }}">Back to Login</a>
+    <a href="{{ route('login') }}" class="link-muted mt-8 inline-block">Back to sign in</a>
 @endsection

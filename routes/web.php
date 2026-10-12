@@ -17,6 +17,7 @@ Route::middleware('portal.guest')->group(function () {
     Route::post('/otp/send', [OtpController::class, 'send'])->middleware('throttle:5,1')->name('otp.send');
     Route::get('/otp/verify', [OtpController::class, 'show'])->name('otp.verify');
     Route::post('/otp/verify', [OtpController::class, 'verify'])->name('otp.verify.store');
+    Route::post('/otp/resend', [OtpController::class, 'resend'])->middleware('throttle:5,1')->name('otp.resend');
 });
 
 // Authenticated routes
