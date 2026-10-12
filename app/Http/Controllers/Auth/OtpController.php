@@ -9,11 +9,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Exceptions\OtpDeliveryFailed;
+use App\Services\ActivityLogger;
 
 class OtpController extends Controller
 {
     public function __construct(
         private readonly OtpService $otpService,
+        private readonly ActivityLogger $activity,
     ) {}
 
     /**
@@ -148,6 +150,7 @@ class OtpController extends Controller
         $request->session()->forget('otp_user');
         $request->session()->regenerate();
         $request->session()->put('auth_user', $user);
+        $this->activity->log('User Log in', (int) $user['id']);
 
         return redirect()->intended(route('dashboard'));
     }

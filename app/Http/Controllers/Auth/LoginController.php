@@ -10,11 +10,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Enums\UserType;
+use App\Services\ActivityLogger;
 
 class LoginController extends Controller
 {
     public function __construct(
         private readonly AuthService $authService,
+        private readonly ActivityLogger $activity,
     ) {}
 
     /**
@@ -64,6 +66,7 @@ class LoginController extends Controller
         }
 
         $request->session()->put('auth_user', $user);
+        $this->activity->log('User Log in', (int) $user['id']);
 
         return redirect()->intended(route('dashboard'));
     }
@@ -73,6 +76,7 @@ class LoginController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $this->activity->log('Logout successful');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
