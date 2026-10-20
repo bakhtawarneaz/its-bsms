@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\Auth;
+namespace App\Http\Requests\Profile;
 
 use App\Support\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
-class ContactUpdateRequest extends FormRequest
+class UpdateProfileRequest extends FormRequest
 {
     private const MAX_ENTRIES = 5;
 
@@ -18,10 +18,16 @@ class ContactUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'fullname' => ['required', 'string', 'max:50'],
-            'mobiles'  => ['required', 'string', 'max:200'],
-            'emails'   => ['required', 'string', 'max:500'],
+            'fullname'          => ['required', 'string', 'max:50'],
+            'mobiles'           => ['required', 'string', 'max:200'],
+            'emails'            => ['required', 'string', 'max:500'],
+            'low_balance_limit' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
         ];
+    }
+
+    public function attributes(): array
+    {
+        return ['fullname' => 'business name', 'low_balance_limit' => 'low balance alert'];
     }
 
     /**
@@ -32,7 +38,7 @@ class ContactUpdateRequest extends FormRequest
         return [
             function (Validator $validator) {
                 $invalidMobiles = array_filter($this->rawList('mobiles'), fn ($m) => ! PhoneNumber::isValid($m));
-                $invalidEmails  = array_filter($this->rawList('emails'), fn ($e) => ! filter_var($e, FILTER_VALIDATE_EMAIL));
+                $invalidEmails = array_filter($this->rawList('emails'), fn ($e) => ! filter_var($e, FILTER_VALIDATE_EMAIL));
 
                 if ($invalidMobiles) {
                     $validator->errors()->add('mobiles', 'Invalid mobile number(s): ' . implode(', ', $invalidMobiles));
@@ -43,11 +49,11 @@ class ContactUpdateRequest extends FormRequest
                 }
 
                 if (count($this->mobiles()) > self::MAX_ENTRIES) {
-                    $validator->errors()->add('mobiles', 'You can add a maximum of ' . self::MAX_ENTRIES . ' mobile numbers.');
+                    $validator->errors()->add('mobiles', 'Add up to ' . self::MAX_ENTRIES . ' mobile numbers.');
                 }
 
                 if (count($this->emails()) > self::MAX_ENTRIES) {
-                    $validator->errors()->add('emails', 'You can add a maximum of ' . self::MAX_ENTRIES . ' emails.');
+                    $validator->errors()->add('emails', 'Add up to ' . self::MAX_ENTRIES . ' emails.');
                 }
             },
         ];

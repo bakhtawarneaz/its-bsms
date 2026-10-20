@@ -33,7 +33,8 @@ class DeployProcedures extends Command
 
             try {
                 // Support optional "GO" batch separators in the files
-                $batches = preg_split('/^\s*GO\s*;?\s*$/mi', File::get($file->getPathname()));
+                $sql = $this->sqlServer2014Compatible(File::get($file->getPathname()));
+                $batches = preg_split('/^\s*GO\s*;?\s*$/mi', $sql);
 
                 foreach (array_filter(array_map('trim', $batches)) as $batch) {
                     DB::unprepared($batch);
@@ -48,5 +49,18 @@ class DeployProcedures extends Command
         }
 
         return $failed ? self::FAILURE : self::SUCCESS;
+    }
+
+        /**
+     * Production runs SQL Server 2014, which has no CREATE OR ALTER.
+     * Create a stub when the procedure is missing, then ALTER it (keeps permissions).
+     */
+    private function sqlServer2014Compatible(string $sql): string
+    {
+        return preg_replace_callback(
+            '/CREATE\s+OR\s+ALTER\s+PROCEDURE\s+([\w\.\[\]]+)/i',
+            fn ($match) => "IF OBJECT_ID(N'{$match[1]}', N'P') IS NULL EXEC(N'CREATE PROCEDURE {$match[1]} AS RETURN 0');\nGO\nALTER PROCEDURE {$match[1]}",
+            $sql,
+        );
     }
 }

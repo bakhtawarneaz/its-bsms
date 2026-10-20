@@ -1,6 +1,8 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 import { registerCharts } from './charts';
+import { registerProfile } from './profile';
+import { registerForms } from './forms';
 
 /**
  * Global toast store. Use from anywhere:
@@ -71,6 +73,8 @@ window.toast = {
 };
 
 registerCharts(Alpine);
+registerProfile(Alpine);
+registerForms(Alpine);
 
 Alpine.start();
 

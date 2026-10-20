@@ -14,12 +14,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'portal.auth'  => \App\Http\Middleware\EnsurePortalAuthenticated::class,
             'portal.guest' => \App\Http\Middleware\RedirectIfPortalAuthenticated::class,
+            'portal.role'  => \App\Http\Middleware\EnsureUserType::class,
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\AddRequestContext::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+       $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, $request) {
+            return back()->with('error', 'The upload is too large. The logo must be 2 MB or smaller.');
+        });
     })->create();
  

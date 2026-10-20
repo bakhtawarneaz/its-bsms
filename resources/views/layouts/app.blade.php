@@ -118,6 +118,10 @@
                         <p class="truncate text-xs text-muted">{{ explode(',', $authUser['email'])[0] }}</p>
                     </div>
                     <div class="my-1 border-t border-line"></div>
+                    <a href="{{ route('profile.edit') }}" class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink transition hover:bg-surface" role="menuitem">
+                        <x-heroicon-o-user-circle class="size-5 text-muted" />
+                        My profile
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink transition hover:bg-surface" role="menuitem">

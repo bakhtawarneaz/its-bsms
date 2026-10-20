@@ -53,13 +53,6 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
         if (UserType::fromDatabase($user['user_type'])->requiresOtp()) {
-            // First-time users must confirm their contact info before receiving an OTP
-            if ((int) $user['contact_updated'] === 0) {
-                $request->session()->put('contact_user', $user);
-
-                return redirect()->route('contact.edit');
-            }
-
             $request->session()->put('otp_user', $user);
 
             return redirect()->route('otp.recipients');

@@ -51,10 +51,11 @@ return [
     [
         'label' => 'Management',
         'items' => [
-            ['label' => 'Users', 'icon' => 'users', 'route' => 'users.index', 'roles' => ['superadmin', 'admin', 'reseller']],
-            ['label' => 'Resellers', 'icon' => 'building-storefront', 'route' => 'resellers.index', 'roles' => ['superadmin', 'admin']],
+            // Admin/reseller scoped user lists come later; route is superadmin-only for now.
+            ['label' => 'Users', 'icon' => 'users', 'route' => 'users.index', 'roles' => ['superadmin']],
+            ['label' => 'Resellers', 'icon' => 'building-storefront', 'route' => 'resellers.index', 'roles' => ['superadmin']],
             ['label' => 'Gateway users', 'icon' => 'cpu-chip', 'route' => 'gateway.users', 'roles' => ['superadmin']],
-            ['label' => 'Maskings', 'icon' => 'identification', 'route' => 'maskings.index', 'roles' => ['superadmin', 'admin', 'reseller']],
+            ['label' => 'Maskings', 'icon' => 'identification', 'route' => 'maskings.index', 'roles' => ['superadmin']],
             ['label' => 'SMS balance', 'icon' => 'banknotes', 'route' => 'balance.index', 'roles' => ['reseller', 'user']],
         ],
     ],
