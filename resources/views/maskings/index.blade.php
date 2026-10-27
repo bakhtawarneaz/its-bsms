@@ -3,6 +3,7 @@
 @section('title', 'Maskings')
 
 @section('content')
+    @inject('permissions', 'App\Support\Permissions')
     @php
         $tabs = ['' => 'All', 'active' => 'Active', 'inactive' => 'Inactive', 'unrouted' => 'No routes'];
         $listUrl = fn (array $changes = []) => route('maskings.index', array_filter(
@@ -33,6 +34,7 @@
 
             return [(int) $row->id => $data];
         });
+        $canStatus = $permissions->has(\App\Support\Permissions::MASK_APPROVAL);
     @endphp
 
     <div x-data="{
@@ -71,6 +73,13 @@
                     <x-heroicon-o-inbox class="size-4" />
                     Requests
                 </a>
+                @if ($canStatus)
+                    <a href="{{ route('gateway.mask-routes') }}"
+                       class="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-navy-700/40">
+                        <x-heroicon-o-signal class="size-4" />
+                        Gateway routes
+                    </a>
+                @endif
                 <a href="{{ route('maskings.create') }}"
                    class="inline-flex items-center gap-2 rounded-lg bg-navy-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800">
                     <x-heroicon-m-plus class="size-4" />
@@ -134,8 +143,10 @@
                     <thead class="bg-surface/60 text-left text-xs font-semibold uppercase tracking-wide text-muted">
                         <tr>
                             <th class="w-10 py-3 pl-4">
-                                <input type="checkbox" class="size-4 cursor-pointer accent-navy-900" aria-label="Select all on this page"
-                                       :checked="allChecked" @change="toggleAll()">
+                                @if ($canStatus)
+                                    <input type="checkbox" class="size-4 cursor-pointer accent-navy-900" aria-label="Select all on this page"
+                                           :checked="allChecked" @change="toggleAll()">
+                                @endif
                             </th>
                             <th class="px-4 py-3">Masking</th>
                             <th class="px-4 py-3">Type</th>
@@ -157,8 +168,10 @@
                             @endphp
                             <tr class="transition hover:bg-surface/50" :class="selected.includes({{ (int) $masking->id }}) && 'bg-navy-900/[0.03]'">
                                 <td class="py-3 pl-4">
-                                    <input type="checkbox" class="size-4 cursor-pointer accent-navy-900" aria-label="Select {{ $name }}"
-                                           value="{{ (int) $masking->id }}" x-model.number="selected">
+                                    @if ($canStatus)
+                                        <input type="checkbox" class="size-4 cursor-pointer accent-navy-900" aria-label="Select {{ $name }}"
+                                               value="{{ (int) $masking->id }}" x-model.number="selected">
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3">
@@ -198,7 +211,7 @@
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3">
                                     <div class="flex items-center justify-end gap-1">
-                                        @if ($hasRoutes)
+                                        @if ($hasRoutes && $canStatus)
                                             <button type="button" class="{{ $iconButton }}" title="Change status" @click="status = @js($rowStatus)">
                                                 <x-heroicon-o-signal class="size-4.5" />
                                             </button>
@@ -234,6 +247,7 @@
         </div>
 
         {{-- Bulk action bar --}}
+        @if ($canStatus)
         <div x-show="selected.length" x-cloak
              x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
              x-transition:leave="transition duration-150 ease-in" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 translate-y-4"
@@ -246,6 +260,7 @@
                 <button type="button" class="rounded-lg px-3 py-2 text-white/70 transition hover:bg-white/10 hover:text-white" @click="selected = []">Clear</button>
             </div>
         </div>
+        @endif
 
         {{-- Status modal --}}
         <div x-show="status" x-cloak class="fixed inset-0 z-50 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="status-title"

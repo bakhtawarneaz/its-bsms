@@ -28,7 +28,7 @@ final class Navigation
                     'label'  => $item['label'],
                     'icon'   => $item['icon'],
                     'url'    => $available ? route($item['route']) : null,
-                    'active' => $available && request()->routeIs($item['route'], $item['route'] . '.*'),
+                    'active' => $available && request()->routeIs(...(array) ($item['match'] ?? [$item['route'], $item['route'] . '.*'])),
                 ];
             }
 

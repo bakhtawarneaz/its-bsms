@@ -11,7 +11,9 @@ CREATE OR ALTER PROCEDURE dbo.usp_users_update
     @user_type         VARCHAR(13),
     @reseller_id       INT = NULL,
     @reporting_user_id INT = NULL,
-    @password_hash     VARCHAR(32) = NULL
+    @password_hash     VARCHAR(32) = NULL,
+    @forward_status    BIT = NULL,
+    @calling_api       NVARCHAR(MAX) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -47,7 +49,9 @@ BEGIN
         user_type         = @user_type,
         reseller_id       = CASE WHEN @reseller_id IS NOT NULL THEN @reseller_id ELSE reseller_id END,
         reporting_user_id = CASE WHEN @user_type = 'reporting' THEN @reporting_user_id ELSE reporting_user_id END,
-        password          = CASE WHEN @password_hash IS NOT NULL THEN @password_hash ELSE password END
+        password          = CASE WHEN @password_hash IS NOT NULL THEN @password_hash ELSE password END,
+        StatusCallingAPI  = ISNULL(@forward_status, StatusCallingAPI),
+        CallingAPI        = CASE WHEN @calling_api IS NOT NULL THEN @calling_api ELSE CallingAPI END
     WHERE id = @user_id;
 
     SELECT 'OK' AS status;

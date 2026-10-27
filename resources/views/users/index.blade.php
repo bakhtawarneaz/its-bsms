@@ -5,6 +5,7 @@
 @use('App\Enums\UserType')
 
 @section('content')
+    @inject('permissions', 'App\Support\Permissions')
     @php
         $tabs = ['' => 'All', 'active' => 'Active', 'expired' => 'Expired', 'disabled' => 'Disabled', 'blocked' => 'Blocked'];
         $pill = [
@@ -21,6 +22,7 @@
         ));
         $hasFilters = $filters['search'] || $filters['type'] || $filters['account'];
         $iconButton = 'grid size-8 place-items-center rounded-lg text-muted transition hover:bg-surface hover:text-ink';
+        $canEdit = $permissions->has(\App\Support\Permissions::EDIT_USERS);
     @endphp
 
     <div x-data="{ remove: null, credit: null }">
@@ -126,7 +128,11 @@
                                             {{ mb_substr($user->username, 0, 2) }}
                                         </span>
                                         <div class="min-w-0">
-                                            <a href="{{ route('users.edit', $user->id) }}" class="block truncate font-semibold text-ink hover:underline">{{ $user->username }}</a>
+                                            @if ($canEdit)
+                                                <a href="{{ route('users.edit', $user->id) }}" class="block truncate font-semibold text-ink hover:underline">{{ $user->username }}</a>
+                                            @else
+                                                <p class="truncate font-semibold text-ink">{{ $user->username }}</p>
+                                            @endif
                                             <p class="truncate text-xs text-muted">#{{ $user->id }} · {{ $user->fullname ?: '—' }}</p>
                                         </div>
                                     </div>
@@ -158,50 +164,54 @@
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3">
                                     <div class="flex items-center justify-end gap-1">
-                                        {{-- Sign-in toggle --}}
-                                        <form method="POST" action="{{ route('users.status', $user->id) }}" class="mr-1"
-                                              x-data="{ on: @js($isOn), busy: false }" @submit="busy = true; on = !on">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="hidden" name="status" value="{{ $isOn ? 0 : 1 }}">
-                                            <button type="submit" role="switch" aria-checked="{{ $isOn ? 'true' : 'false' }}"
-                                                    title="{{ $isOn ? 'Disable sign-in' : 'Enable sign-in' }}"
-                                                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 disabled:cursor-wait"
-                                                    :class="on ? 'bg-success' : 'bg-line'" :disabled="busy">
-                                                <span class="sr-only">Toggle sign-in for {{ $user->username }}</span>
-                                                <span class="inline-block size-4 rounded-full bg-white shadow transition-transform duration-200"
-                                                      :class="on ? 'translate-x-4.5' : 'translate-x-0.5'"></span>
-                                            </button>
-                                        </form>
-
-                                        @if ($user->state === 'blocked')
-                                            <form method="POST" action="{{ route('users.unblock', $user->id) }}">
+                                        @if ($canEdit)
+                                            {{-- Sign-in toggle --}}
+                                            <form method="POST" action="{{ route('users.status', $user->id) }}" class="mr-1"
+                                                  x-data="{ on: @js($isOn), busy: false }" @submit="busy = true; on = !on">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="{{ $iconButton }}" title="Unblock sign-in">
-                                                    <x-heroicon-o-lock-open class="size-4.5" />
+                                                <input type="hidden" name="status" value="{{ $isOn ? 0 : 1 }}">
+                                                <button type="submit" role="switch" aria-checked="{{ $isOn ? 'true' : 'false' }}"
+                                                        title="{{ $isOn ? 'Disable sign-in' : 'Enable sign-in' }}"
+                                                        class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 disabled:cursor-wait"
+                                                        :class="on ? 'bg-success' : 'bg-line'" :disabled="busy">
+                                                    <span class="sr-only">Toggle sign-in for {{ $user->username }}</span>
+                                                    <span class="inline-block size-4 rounded-full bg-white shadow transition-transform duration-200"
+                                                          :class="on ? 'translate-x-4.5' : 'translate-x-0.5'"></span>
                                                 </button>
                                             </form>
-                                        @endif
 
-                                        {{-- Credits (prepaid only); an empty slot keeps the icons aligned on postpaid rows --}}
-                                        @if ($isPrepaid)
-                                            <button type="button" class="{{ $iconButton }}" title="Add or deduct credits"
-                                                    @click="credit = { name: @js($user->username), url: @js(route('users.balance', $user->id)), balance: {{ (int) $user->balance }}, action: 'add', amount: '' }">
-                                                <x-heroicon-o-banknotes class="size-4.5" />
+                                            @if ($user->state === 'blocked')
+                                                <form method="POST" action="{{ route('users.unblock', $user->id) }}">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="{{ $iconButton }}" title="Unblock sign-in">
+                                                        <x-heroicon-o-lock-open class="size-4.5" />
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            {{-- Credits (prepaid only); an empty slot keeps the icons aligned on postpaid rows --}}
+                                            @if ($isPrepaid)
+                                                <button type="button" class="{{ $iconButton }}" title="Add or deduct credits"
+                                                        @click="credit = { name: @js($user->username), url: @js(route('users.balance', $user->id)), balance: {{ (int) $user->balance }}, action: 'add', amount: '' }">
+                                                    <x-heroicon-o-banknotes class="size-4.5" />
+                                                </button>
+                                            @else
+                                                <span class="size-8 shrink-0" aria-hidden="true"></span>
+                                            @endif
+
+                                            <a href="{{ route('users.edit', $user->id) }}" class="{{ $iconButton }}" title="Edit">
+                                                <x-heroicon-o-pencil-square class="size-4.5" />
+                                            </a>
+
+                                            <button type="button" class="{{ $iconButton }} hover:bg-danger/10 hover:text-danger" title="Delete"
+                                                    @click="remove = { name: @js($user->username), url: @js(route('users.destroy', $user->id)) }">
+                                                <x-heroicon-o-trash class="size-4.5" />
                                             </button>
                                         @else
-                                            <span class="size-8 shrink-0" aria-hidden="true"></span>
+                                            <span class="text-xs text-muted">View only</span>
                                         @endif
-
-                                        <a href="{{ route('users.edit', $user->id) }}" class="{{ $iconButton }}" title="Edit">
-                                            <x-heroicon-o-pencil-square class="size-4.5" />
-                                        </a>
-
-                                        <button type="button" class="{{ $iconButton }} hover:bg-danger/10 hover:text-danger" title="Delete"
-                                                @click="remove = { name: @js($user->username), url: @js(route('users.destroy', $user->id)) }">
-                                            <x-heroicon-o-trash class="size-4.5" />
-                                        </button>
                                     </div>
                                 </td>
                             </tr>

@@ -98,6 +98,8 @@ class OtpService
             return OtpVerification::Invalid;
         }
 
+        session()->put('otp_recipients', ['mobile' => $otp['mobile'], 'email' => $otp['email']]);
+
         $this->clear();
 
         return OtpVerification::Valid;

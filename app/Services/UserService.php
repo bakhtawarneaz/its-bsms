@@ -104,6 +104,8 @@ class UserService
                 'user_type'         => $input['user_type'],
                 'reseller_id'       => $needsAdmin ? (int) $input['reseller_id'] : null,
                 'reporting_user_id' => $input['user_type'] === 'reporting' ? (int) $input['reporting_user_id'] : null,
+                'forward_status'    => $input['dlr_forward'] ? 1 : 0,
+                'calling_api'       => $input['dlr_forward'] ? $input['calling_api'] : null,
             ]);
 
             match ($result->status ?? null) {
@@ -155,6 +157,8 @@ class UserService
                 'reseller_id'       => $needsAdmin ? (int) $input['reseller_id'] : null,
                 'reporting_user_id' => $input['user_type'] === 'reporting' ? (int) $input['reporting_user_id'] : null,
                 'password_hash'     => filled($input['password'] ?? null) ? md5(md5($input['password'])) : null,
+                'forward_status'    => $input['dlr_forward'] ? 1 : 0,
+                'calling_api'       => $input['dlr_forward'] ? $input['calling_api'] : null,
             ]);
 
             match ($result->status ?? null) {

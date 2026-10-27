@@ -115,6 +115,124 @@ export function registerForms(Alpine) {
         },
     }));
 
+        /**
+     * Date range field for forms: dashboard-style presets + inline range calendar.
+     * Writes Y-m-d values to two hidden inputs (from / to).
+     */
+    // Alpine.data('dateRangeField', ({ from, to, maxDate }) => ({
+    //     from,
+    //     to,
+    //     open: false,
+    //     draft: [from, to],
+    //     picker: null,
+    //     panelStyle: '',
+
+    //     init() {
+    //         this.picker = flatpickr(this.$refs.calendar, {
+    //             mode: 'range',
+    //             inline: true,
+    //             dateFormat: 'Y-m-d',
+    //             maxDate,
+    //             defaultDate: [from, to],
+    //             onChange: (dates) => {
+    //                 this.draft = dates.map((date) => this.iso(date));
+    //             },
+    //         });
+    //     },
+
+    //     destroy() {
+    //         this.picker?.destroy();
+    //     },
+
+    //     iso(date) {
+    //         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    //     },
+
+    //     pretty(value) {
+    //         return value
+    //             ? new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    //             : '';
+    //     },
+
+    //     get label() {
+    //         return this.from === this.to ? this.pretty(this.from) : `${this.pretty(this.from)} – ${this.pretty(this.to)}`;
+    //     },
+
+    //     get selectionLabel() {
+    //         if (!this.draft.length) return 'Pick a start date';
+    //         if (this.draft.length === 1) return `${this.pretty(this.draft[0])} – pick an end date`;
+
+    //         return `${this.pretty(this.draft[0])} – ${this.pretty(this.draft[1])}`;
+    //     },
+
+    //     get canApply() {
+    //         return this.draft.length > 0;
+    //     },
+
+    //     toggle() {
+    //         this.open ? (this.open = false) : this.show();
+    //     },
+
+    //     show() {
+    //         this.draft = [this.from, this.to];
+    //         this.picker.setDate(this.draft, false);
+    //         this.picker.jumpToDate(this.to);
+    //         this.open = true;
+    //         this.$nextTick(() => this.place());
+    //     },
+
+    //     // Fixed position so the panel is never clipped by modals or overflow-hidden cards.
+    //     place() {
+    //         const trigger = this.$refs.trigger.getBoundingClientRect();
+    //         const panel = this.$refs.panel;
+    //         const width = panel.offsetWidth;
+    //         const height = panel.offsetHeight;
+
+    //         const left = Math.max(16, Math.min(trigger.left, window.innerWidth - width - 16));
+    //         let top = trigger.bottom + 8;
+
+    //         if (top + height > window.innerHeight - 16 && trigger.top - height - 8 > 16) {
+    //             top = trigger.top - height - 8;
+    //         }
+
+    //         this.panelStyle = `top: ${top}px; left: ${left}px;`;
+    //     },
+
+    //     choose(from, to) {
+    //         this.from = from;
+    //         this.to = to;
+    //         this.open = false;
+    //         this.$dispatch('input');
+    //     },
+
+    //     apply() {
+    //         const [from, to = from] = this.draft;
+    //         this.choose(from, to);
+    //     },
+    // }));
+    /**
+     * Styled single date picker.
+     */
+    Alpine.data('datePicker', ({ value, minDate, maxDate }) => ({
+        picker: null,
+
+        init() {
+            this.picker = flatpickr(this.$refs.input, {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'j M Y',
+                defaultDate: value || null,
+                minDate,
+                maxDate,
+                disableMobile: true,
+                onChange: () => this.$dispatch('input'),
+            });
+        },
+
+        destroy() {
+            this.picker?.destroy();
+        },
+    }));
     /**
      * Two-step add user wizard.
      */

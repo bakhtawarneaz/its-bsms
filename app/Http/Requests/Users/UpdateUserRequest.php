@@ -30,6 +30,7 @@ class UpdateUserRequest extends StoreUserRequest
         return array_merge($this->validated(), [
             'mobiles' => implode(',', array_unique(array_map(PhoneNumber::normalize(...), $this->list('mobiles')))),
             'emails'  => implode(',', array_unique(array_map('strtolower', $this->list('emails')))),
+            'calling_api' => $this->boolean('dlr_forward') ? $this->callingApi() : null,
         ]);
     }
 }

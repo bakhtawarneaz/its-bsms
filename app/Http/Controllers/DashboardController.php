@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class DashboardController extends Controller
 {
@@ -27,10 +28,14 @@ class DashboardController extends Controller
         private readonly DashboardService $dashboard,
     ) {}
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $user = $request->session()->get('auth_user');
         $userType = UserType::fromDatabase($user['user_type']);
+
+          if ($userType->value === 'campapprover') {
+            return redirect()->route('campaigns.index', ['state' => 'approval']);
+        }
 
         [$from, $to, $range] = $this->resolveRange($request);
 

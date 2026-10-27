@@ -9,6 +9,7 @@ BEGIN
     SELECT u.id, u.username, u.fullname, u.email, u.user_mobile, u.user_type, u.account_type,
            u.balance, u.status, u.user_expiry, u.user_creation, u.CustID AS customer_id,
            u.reseller_id, u.reporting_user_id, ISNULL(u.permanentblock, 0) AS permanentblock,
+           ISNULL(u.StatusCallingAPI, 0) AS forward_status, u.CallingAPI AS calling_api,
            a.username AS admin_username, r.username AS reporting_username
     FROM dbo.users u
     LEFT JOIN dbo.users a ON a.id = u.reseller_id

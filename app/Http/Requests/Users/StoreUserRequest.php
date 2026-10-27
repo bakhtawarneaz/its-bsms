@@ -19,7 +19,10 @@ class StoreUserRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge(['status' => $this->boolean('status')]);
+        $this->merge([
+            'status'      => $this->boolean('status'),
+            'dlr_forward' => $this->boolean('dlr_forward'),
+        ]);
     }
 
     public function rules(): array
@@ -40,6 +43,8 @@ class StoreUserRequest extends FormRequest
             'user_type'         => ['required', Rule::in(self::USER_TYPES)],
             'reseller_id'       => [Rule::requiredIf(fn () => in_array($this->input('user_type'), UserService::TYPES_WITH_ADMIN, true)), 'nullable', 'integer'],
             'reporting_user_id' => ['required_if:user_type,reporting', 'nullable', 'integer'],
+            'dlr_forward'       => ['boolean'],
+            'calling_api'       => [Rule::requiredIf(fn () => $this->boolean('dlr_forward')), 'nullable', 'string', 'max:20000'],
         ];
     }
 
@@ -53,6 +58,7 @@ class StoreUserRequest extends FormRequest
             'reseller_id.required'       => 'Select an admin for this user.',
             'reporting_user_id.required_if' => 'Select the user this account reports on.',
             'expiry.after_or_equal'      => 'The expiry date cannot be in the past.',
+            'calling_api.required'       => 'Paste the DLR forwarding JSON or turn forwarding off.',
         ];
     }
 
@@ -82,6 +88,10 @@ class StoreUserRequest extends FormRequest
                 if (count($mobiles) > 5 || count($emails) > 5) {
                     $validator->errors()->add('mobiles', 'Add up to 5 mobile numbers and 5 emails.');
                 }
+
+                if ($this->boolean('dlr_forward') && filled($this->input('calling_api')) && $this->callingApi() === null) {
+                    $validator->errors()->add('calling_api', 'This is not valid JSON. It must be a JSON object or array.');
+                }
             },
         ];
     }
@@ -95,7 +105,25 @@ class StoreUserRequest extends FormRequest
             'username' => trim($this->validated('username')),
             'mobiles'  => implode(',', array_unique(array_map(PhoneNumber::normalize(...), $this->list('mobiles')))),
             'emails'   => implode(',', array_unique(array_map('strtolower', $this->list('emails')))),
+            'calling_api' => $this->boolean('dlr_forward') ? $this->callingApi() : null,
         ]);
+    }
+
+    /**
+     * The pasted DLR forwarding JSON, trimmed and saved exactly as entered,
+     * or null when it is not a valid JSON object / array.
+     */
+    protected function callingApi(): ?string
+    {
+        $json = trim((string) $this->input('calling_api'));
+
+        if ($json === '') {
+            return null;
+        }
+
+        $decoded = json_decode($json, false, 512, JSON_BIGINT_AS_STRING);
+
+        return json_last_error() === JSON_ERROR_NONE && (is_array($decoded) || is_object($decoded)) ? $json : null;
     }
 
     protected function list(string $field): array

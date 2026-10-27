@@ -4,7 +4,7 @@
 
 @section('content')
     @php
-        $stepTwoFields = ['account_type', 'balance', 'user_type', 'reseller_id', 'reporting_user_id'];
+        $stepTwoFields = ['account_type', 'balance', 'user_type', 'reseller_id', 'reporting_user_id', 'dlr_forward', 'calling_api'];
         $startStep = $errors->hasAny($stepTwoFields) ? 2 : 1;
         $statusOn = old() ? (bool) old('status') : true;
         $listFrom = fn ($value) => array_values(array_filter(array_map('trim', explode(',', (string) $value))));
@@ -256,6 +256,9 @@
                             'placeholder' => 'Search users',
                         ])
                     </div>
+                </div>
+                <div class="border-t border-line pt-6">
+                    @include('users.partials.dlr-forwarding', ['enabled' => (bool) old('dlr_forward'), 'json' => old('calling_api', '')])
                 </div>
             </div>
 

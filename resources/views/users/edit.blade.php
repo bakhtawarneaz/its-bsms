@@ -226,6 +226,20 @@
                     </div>
                 </section>
 
+                {{-- DLR forwarding --}}
+                <section class="{{ $card }}">
+                    <header class="border-b border-line px-6 py-4">
+                        <h3 class="font-semibold">DLR forwarding</h3>
+                        <p class="mt-0.5 text-sm text-muted">Push delivery reports to the client's own endpoint</p>
+                    </header>
+                    <div class="p-6">
+                        @include('users.partials.dlr-forwarding', [
+                            'enabled' => old() ? (bool) old('dlr_forward') : (int) ($user->forward_status ?? 0) === 1,
+                            'json'    => old('calling_api', $user->calling_api ?? ''),
+                        ])
+                    </div>
+                </section>
+
                 {{-- Maskings --}}
                 <section class="{{ $card }}">
                     <header class="border-b border-line px-6 py-4">

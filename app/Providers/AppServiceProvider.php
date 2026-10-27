@@ -14,7 +14,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // One permissions lookup per request.
+        $this->app->scoped(\App\Support\Permissions::class);
     }
 
     /**

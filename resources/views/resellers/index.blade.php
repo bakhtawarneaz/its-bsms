@@ -3,6 +3,7 @@
 @section('title', 'Resellers')
 
 @section('content')
+    @inject('permissions', 'App\Support\Permissions')
     @php
         $tabs = ['' => 'All', 'active' => 'Active', 'expired' => 'Expired', 'disabled' => 'Disabled', 'blocked' => 'Blocked'];
         $pill = [
@@ -16,6 +17,7 @@
             fn ($v) => $v !== null && $v !== ''
         ));
         $iconButton = 'grid size-8 place-items-center rounded-lg text-muted transition hover:bg-surface hover:text-ink';
+        $canEdit = $permissions->has(\App\Support\Permissions::EDIT_USERS);
     @endphp
 
     {{-- Page header --}}
@@ -107,7 +109,11 @@
                                         </span>
                                     @endif
                                     <div class="min-w-0">
-                                        <a href="{{ route('resellers.edit', $reseller->id) }}" class="block truncate font-semibold text-ink hover:underline">{{ $company }}</a>
+                                        @if ($canEdit)
+                                            <a href="{{ route('resellers.edit', $reseller->id) }}" class="block truncate font-semibold text-ink hover:underline">{{ $company }}</a>
+                                        @else
+                                            <p class="truncate font-semibold text-ink">{{ $company }}</p>
+                                        @endif
                                         <p class="truncate text-xs text-muted">#{{ $reseller->id }} · {{ $reseller->username }}</p>
                                     </div>
                                 </div>
@@ -140,12 +146,16 @@
                             </td>
                             <td class="whitespace-nowrap px-4 py-3">
                                 <div class="flex items-center justify-end gap-1">
-                                    <a href="{{ route('resellers.edit', $reseller->id) }}" class="{{ $iconButton }}" title="Edit branding">
-                                        <x-heroicon-o-swatch class="size-4.5" />
-                                    </a>
-                                    <a href="{{ route('users.edit', $reseller->id) }}" class="{{ $iconButton }}" title="Edit account">
-                                        <x-heroicon-o-pencil-square class="size-4.5" />
-                                    </a>
+                                    @if ($canEdit)
+                                        <a href="{{ route('resellers.edit', $reseller->id) }}" class="{{ $iconButton }}" title="Edit branding">
+                                            <x-heroicon-o-swatch class="size-4.5" />
+                                        </a>
+                                        <a href="{{ route('users.edit', $reseller->id) }}" class="{{ $iconButton }}" title="Edit account">
+                                            <x-heroicon-o-pencil-square class="size-4.5" />
+                                        </a>
+                                    @else
+                                        <span class="text-xs text-muted">View only</span>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

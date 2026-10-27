@@ -48,4 +48,10 @@ return [
         'delivery' => env('OTP_DELIVERY', 'log'),
     ],
 
+    'mnp' => [
+        'url'  => env('MNP_API_URL', 'https://mnpapi.its.com.pk/api/fetch'),
+        'key'  => env('MNP_API_KEY'),
+        'fake' => (bool) env('MNP_API_FAKE', false), // local: network from number prefix, no HTTP call
+    ],
+
 ];

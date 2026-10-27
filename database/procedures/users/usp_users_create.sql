@@ -12,7 +12,9 @@ CREATE OR ALTER PROCEDURE dbo.usp_users_create
     @balance           BIGINT,
     @user_type         NVARCHAR(13),
     @reseller_id       INT = NULL,
-    @reporting_user_id INT = NULL
+    @reporting_user_id INT = NULL,
+    @forward_status    BIT = 0,              -- DLR Forwarding Status (users.StatusCallingAPI)
+    @calling_api       NVARCHAR(MAX) = NULL  -- DLR forwarding JSON, validated in PHP (users.CallingAPI)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -43,12 +45,12 @@ BEGIN
     INSERT INTO dbo.users
         (username, fullname, [password], email, user_mobile, user_creation, user_expiry,
          site_name, CustID, [status], account_type, balance, user_type,
-         otp_access, otp_account, voice_balance)
+         otp_access, otp_account, voice_balance, StatusCallingAPI, CallingAPI)
     VALUES
         (@username, @fullname, @password_hash, @email, @mobiles, GETDATE(), @expiry,
          @site_name, @customer_id, @status, @account_type,
          CASE WHEN @is_prepaid = 1 THEN @balance ELSE 0 END, @user_type,
-         0, 'postpaid', 0);
+         0, 'postpaid', 0, ISNULL(@forward_status, 0), @calling_api);
 
     DECLARE @new_id INT = CAST(SCOPE_IDENTITY() AS INT);
 
